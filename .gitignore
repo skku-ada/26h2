@@ -1,2 +1,5 @@
 .DS_Store
 **/.DS_Store
+
+# SMB 마운트가 남기는 삭제 잔재
+.smbdelete*
