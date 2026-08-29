@@ -20,12 +20,86 @@
     .markdown-section { max-width: 900px; }
     .markdown-section img { border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
     .markdown-section code { background: #f3f3f3; }
+
+    /* README 상단의 Pages 링크 — GitHub 에서 볼 때만 필요하므로 사이트에서는 숨긴다 */
+    .markdown-section .gh-only { display: none; }
+
+    /* 페이지별 오류 신고 상자 */
+    .ada-report { margin: 3rem 0 1rem; border-top: 1px solid #eaecef; padding-top: 1rem; }
+    .ada-report summary { cursor: pointer; color: #6a737d; font-size: .9rem; }
+    .ada-report summary:hover { color: var(--theme-color); }
+    .ada-report[open] summary { color: var(--theme-color); margin-bottom: .8rem; }
+    .ada-report .hint { font-size: .82rem; color: #6a737d; line-height: 1.6; margin: 0 0 .8rem; }
+    .ada-report input, .ada-report textarea {
+      width: 100%; box-sizing: border-box; padding: .5rem .6rem; margin-bottom: .6rem;
+      border: 1px solid #d1d5da; border-radius: 4px; font: inherit; font-size: .9rem;
+    }
+    .ada-report textarea { resize: vertical; }
+    .ada-report button {
+      background: var(--theme-color); color: #fff; border: 0; border-radius: 4px;
+      padding: .5rem 1rem; font-size: .9rem; cursor: pointer;
+    }
+    .ada-report button:hover { opacity: .88; }
+    .ada-report .warn { color: #b34; font-size: .82rem; margin-left: .6rem; }
   </style>
 </head>
 <body>
   <div id="app">로딩 중...</div>
 
   <script>
+    // ── 오류 신고 상자 ────────────────────────────────────────────────
+    var ADA = {
+      repo: 'https://github.com/skku-ada/26h2',
+      label: '교재오류',
+      max: 5000,                       // 프리필 URL 이 지나치게 길어지는 것을 막는다
+
+      reportBox: function (file) {
+        return '<div class="ada-report" data-file="' + file + '">'
+          + '<details><summary>내용 오류 · 깨진 수식 · 잘못된 그림을 발견하면 기록해 주세요</summary>'
+          + '<p class="hint">아래에 적고 <b>GitHub 에 등록</b>을 누르면 내용이 채워진 이슈 작성 화면이 열립니다. '
+          + '거기서 <b>Submit new issue</b> 를 눌러야 등록이 끝납니다. (GitHub 로그인 필요)</p>'
+          + '<input type="text" class="ada-where" placeholder="위치 — 예: 5.1.4 · 그림 5-8 · 실습 5.1.2">'
+          + '<textarea class="ada-what" rows="4" placeholder="무엇이 잘못되었는지 적어 주세요."></textarea>'
+          + '<button type="button" class="ada-send">GitHub 에 등록</button>'
+          + '<span class="warn"></span>'
+          + '</details></div>';
+      },
+
+      bind: function () {
+        document.querySelectorAll('.ada-report').forEach(function (box) {
+          var btn = box.querySelector('.ada-send');
+          if (!btn || btn.dataset.bound) return;
+          btn.dataset.bound = '1';
+          btn.addEventListener('click', function () {
+            var warn  = box.querySelector('.warn');
+            var what  = box.querySelector('.ada-what').value.trim();
+            var where = box.querySelector('.ada-where').value.trim();
+            if (!what) { warn.textContent = '내용을 적어 주세요.'; return; }
+
+            var file = box.dataset.file;
+            var h1   = document.querySelector('.markdown-section h1');
+            var name = h1 ? h1.textContent.trim() : file.replace(/\.md$/, '');
+            var url  = location.origin + location.pathname + '#/' + file.replace(/\.md$/, '');
+
+            var body = '**페이지**: `' + file + '`\n'
+                     + '**주소**: ' + url + '\n'
+                     + (where ? '**위치**: ' + where + '\n' : '')
+                     + '\n' + what + '\n\n'
+                     + '<sub>교재 페이지 하단의 오류 신고로 작성됨</sub>';
+
+            if (body.length > ADA.max) {
+              warn.textContent = '내용이 너무 깁니다. 줄여 주세요.'; return;
+            }
+            warn.textContent = '';
+            window.open(ADA.repo + '/issues/new'
+              + '?labels=' + encodeURIComponent(ADA.label)
+              + '&title='  + encodeURIComponent('[교재오류] ' + name)
+              + '&body='   + encodeURIComponent(body), '_blank');
+          });
+        });
+      }
+    };
+
     window.$docsify = {
       name: '응용데이터분석 (ADA) 교재',
       repo: 'https://github.com/skku-ada/26h2',
@@ -54,7 +128,21 @@
       pagination: {
         crossChapter: true,
         crossChapterText: true
-      }
+      },
+
+      // 페이지마다 하단에 오류 신고 상자를 붙인다.
+      // 입력 내용을 GitHub 이슈 작성 화면에 미리 채워 열어 준다.
+      // (정적 사이트라 토큰 없이 직접 등록할 수는 없다 — 마지막 제출은 사용자가 누른다)
+      plugins: [
+        function (hook, vm) {
+          hook.afterEach(function (html, next) {
+            var file = (vm.route && vm.route.file) || '';
+            if (!file) return next(html);
+            next(html + ADA.reportBox(file));
+          });
+          hook.doneEach(function () { ADA.bind(); });
+        }
+      ]
     };
   </script>
 
