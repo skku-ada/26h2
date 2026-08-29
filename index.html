@@ -77,13 +77,14 @@
             var where = box.querySelector('.ada-where').value.trim();
             if (!what) { ev.preventDefault(); warn.textContent = '내용을 적어 주세요.'; return; }
 
-            var file = box.dataset.file;
+            var file = box.dataset.file;                 // 라우터가 주는 값은 URL 인코딩되어 있다
+            var nice = decodeURIComponent(file);         // 사람이 읽을 경로
             var h1   = document.querySelector('.markdown-section h1');
-            var name = h1 ? h1.textContent.trim() : file.replace(/\.md$/, '');
+            var name = h1 ? h1.textContent.trim() : nice.replace(/\.md$/, '');
             var url  = location.origin + location.pathname + '#/' + file.replace(/\.md$/, '');
 
-            var body = '**페이지**: `' + file + '`\n'
-                     + '**주소**: ' + url + '\n'
+            var body = '**페이지**: `' + nice + '`\n'
+                     + '**주소**: [' + name + '](' + url + ')\n'
                      + (where ? '**위치**: ' + where + '\n' : '')
                      + '\n' + what + '\n\n'
                      + '<sub>교재 페이지 하단의 오류 신고로 작성됨</sub>';
