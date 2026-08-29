@@ -35,11 +35,12 @@
       border: 1px solid #d1d5da; border-radius: 4px; font: inherit; font-size: .9rem;
     }
     .ada-report textarea { resize: vertical; }
-    .ada-report button {
-      background: var(--theme-color); color: #fff; border: 0; border-radius: 4px;
-      padding: .5rem 1rem; font-size: .9rem; cursor: pointer;
+    .ada-report .ada-send {
+      display: inline-block; background: var(--theme-color); color: #fff;
+      border-radius: 4px; padding: .5rem 1rem; font-size: .9rem;
+      cursor: pointer; text-decoration: none;
     }
-    .ada-report button:hover { opacity: .88; }
+    .ada-report .ada-send:hover { opacity: .88; color: #fff; text-decoration: none; }
     .ada-report .warn { color: #b34; font-size: .82rem; margin-left: .6rem; }
   </style>
 </head>
@@ -60,7 +61,7 @@
           + '거기서 <b>Submit new issue</b> 를 눌러야 등록이 끝납니다. (GitHub 로그인 필요)</p>'
           + '<input type="text" class="ada-where" placeholder="위치 — 예: 5.1.4 · 그림 5-8 · 실습 5.1.2">'
           + '<textarea class="ada-what" rows="4" placeholder="무엇이 잘못되었는지 적어 주세요."></textarea>'
-          + '<button type="button" class="ada-send">GitHub 에 등록</button>'
+          + '<a class="ada-send" href="#" target="_blank" rel="noopener">GitHub 에 등록</a>'
           + '<span class="warn"></span>'
           + '</details></div>';
       },
@@ -70,11 +71,11 @@
           var btn = box.querySelector('.ada-send');
           if (!btn || btn.dataset.bound) return;
           btn.dataset.bound = '1';
-          btn.addEventListener('click', function () {
+          btn.addEventListener('click', function (ev) {
             var warn  = box.querySelector('.warn');
             var what  = box.querySelector('.ada-what').value.trim();
             var where = box.querySelector('.ada-where').value.trim();
-            if (!what) { warn.textContent = '내용을 적어 주세요.'; return; }
+            if (!what) { ev.preventDefault(); warn.textContent = '내용을 적어 주세요.'; return; }
 
             var file = box.dataset.file;
             var h1   = document.querySelector('.markdown-section h1');
@@ -88,13 +89,15 @@
                      + '<sub>교재 페이지 하단의 오류 신고로 작성됨</sub>';
 
             if (body.length > ADA.max) {
+              ev.preventDefault();
               warn.textContent = '내용이 너무 깁니다. 줄여 주세요.'; return;
             }
             warn.textContent = '';
-            window.open(ADA.repo + '/issues/new'
+            // href 를 채워 두면 브라우저가 평범한 링크로 새 탭을 연다 — 팝업 차단과 무관하다
+            btn.href = ADA.repo + '/issues/new'
               + '?labels=' + encodeURIComponent(ADA.label)
               + '&title='  + encodeURIComponent('[교재오류] ' + name)
-              + '&body='   + encodeURIComponent(body), '_blank');
+              + '&body='   + encodeURIComponent(body);
           });
         });
       }
