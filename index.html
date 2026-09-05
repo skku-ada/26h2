@@ -21,6 +21,14 @@
     .markdown-section img { border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
     .markdown-section code { background: #f3f3f3; }
 
+    /* 코드 주석 — 기본 테마의 흐린 회색 이탤릭 대신 녹색 정자체로 표시한다.
+       한글 설명 주석과 프롬프트를 담은 삼중따옴표 문자열이 본문처럼 읽히게 하는 것이 목적이다. */
+    .markdown-section pre .token.comment,
+    .markdown-section pre .token.triple-quoted-string {
+      color: #1a7f37;
+      font-style: normal;
+    }
+
     /* README 상단의 Pages 링크 — GitHub 에서 볼 때만 필요하므로 사이트에서는 숨긴다 */
     .markdown-section .gh-only { display: none; }
 
@@ -163,6 +171,13 @@
 
   <!-- Docsify 본체 (빌드 과정 없이 CDN 스크립트만으로 동작) -->
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+
+  <!--
+    파이썬 구문 강조: docsify 에 들어 있는 Prism 에는 python 컴포넌트가 빠져 있어
+    코드블록이 색 없는 단색으로 보인다. 이 한 줄로 키워드·문자열·숫자·함수가 구분된다.
+    Prism 본체가 docsify 안에 있으므로 반드시 docsify 본체보다 "뒤에" 와야 한다.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
 
   <!-- 검색 플러그인 -->
   <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
